@@ -25,6 +25,6 @@ public class Document {
     private int wordCount;
 
     @Column(name = "user_email")
-    private int userEmail;
+    private String userEmail;
 
 }

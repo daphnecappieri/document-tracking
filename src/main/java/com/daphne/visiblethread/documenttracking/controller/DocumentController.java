@@ -3,11 +3,12 @@ package com.daphne.visiblethread.documenttracking.controller;
 
 import com.daphne.visiblethread.documenttracking.service.DocumentService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.util.Map;
@@ -16,57 +17,43 @@ import java.util.Map;
 @Slf4j
 public class DocumentController {
 
-
     private final DocumentService service;
 
     DocumentController(DocumentService service) {
         this.service = service;
     }
 
-//    /**
-//     * Get users docs.
-//     *
-//     * @param doc doc
-//     * @return AccountInfo containing users account info.
-//     */
-//    @GetMapping("/user/balance")
-//    AccountInfo getBalance(@RequestParam Integer pin) {
-//        log.info(String.valueOf(pin));
-//        try {
-//            return service.getBalance(pin);
-//        } catch (AccessDeniedException exc) {
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to dispense funds. " + exc.getMessage());
-//        }
-//    }
 
-
+    /**
+     * Upload a document to be stored.
+     *
+     * @param file      Text file to be uploaded
+     * @param userEmail Email address of user
+     * @return ResponseEntity
+     */
     @PostMapping("/upload")
-    public String handleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam("email") String userEmail,
-                                   RedirectAttributes redirectAttributes) {
-
+    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam("email") String userEmail) {
         try {
-            service.store(file);
+            service.store(file, userEmail);
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        redirectAttributes.addFlashAttribute("message",
-                "You successfully uploaded " + file.getOriginalFilename() + "!");
-
-        return "redirect:/";
     }
 
+    /**
+     * Check the top 10 word frequency in a document.
+     *
+     * @param file Text file to be analysed for word frequency
+     * @return ResponseEntity Map of the top frequent words in the document
+     */
     @PostMapping("/wordFrequency")
-    public Map<String, Integer> handleWordFrequency(@RequestParam("file") MultipartFile file,
-                                   RedirectAttributes redirectAttributes) {
+    public ResponseEntity<Map<String, Integer>> handleWordFrequency(@RequestParam("file") MultipartFile file) {
         try {
             Map<String, Integer> wordFreq = service.findWordFrequency(file);
-            return wordFreq;
+            return new ResponseEntity<>(wordFreq, HttpStatus.OK);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-//        redirectAttributes.addFlashAttribute("message",
-//                "You successfully uploaded " + file.getOriginalFilename() + "!");
-
-//        return null;
     }
 }

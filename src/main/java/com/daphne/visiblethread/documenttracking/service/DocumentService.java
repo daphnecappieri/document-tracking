@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface DocumentService {
 
-    void store(MultipartFile file) throws IOException;
+    void store(MultipartFile file, String userEmail) throws IOException;
 
     Map<String, Integer> findWordFrequency(MultipartFile file) throws IOException;
 }

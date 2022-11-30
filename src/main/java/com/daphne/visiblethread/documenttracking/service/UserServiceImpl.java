@@ -1,5 +1,6 @@
 package com.daphne.visiblethread.documenttracking.service;
 
+import com.daphne.visiblethread.documenttracking.exception.BadRequestException;
 import com.daphne.visiblethread.documenttracking.model.Team;
 import com.daphne.visiblethread.documenttracking.model.User;
 import com.daphne.visiblethread.documenttracking.model.UserInfo;
@@ -15,24 +16,22 @@ import java.util.List;
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
-
 
     UserServiceImpl(UserRepository userRepository, TeamRepository teamRepository) {
         this.userRepository = userRepository;
         this.teamRepository = teamRepository;
-
     }
 
     @Override
     public void saveUser(UserInfo userInfo) {
+        if (userInfo.getEmail() == null || userInfo.getTeam() == null){
+            throw new BadRequestException("User email and team needs to be specified in request");
+        }
         User user = userRepository.findByEmail(userInfo.getEmail());
         if (user != null) {
-            //ToDo throw exception
-            System.out.println("Error, no user fount");
-            return;
+            throw new BadRequestException("User already exists");
         }
         user = new User();
         user.setFirstName(userInfo.getFirstName());
@@ -54,9 +53,8 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            //ToDo throw exception
-            System.out.println("Error, no user fount");
-            return;
+            log.error("User {} does not exist", email);
+            throw new BadRequestException("User does not exist");
         }
         Team team = teamRepository.findByName(teamName);
         if (team == null) {
@@ -66,7 +64,6 @@ public class UserServiceImpl implements UserService {
         user.addTeam(team);
         userRepository.save(user);
     }
-
 
     @Override
     public List<User> getUsers() {

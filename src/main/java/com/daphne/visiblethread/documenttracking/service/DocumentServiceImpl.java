@@ -3,6 +3,8 @@ package com.daphne.visiblethread.documenttracking.service;
 import com.daphne.visiblethread.documenttracking.model.Document;
 import com.daphne.visiblethread.documenttracking.repo.DocumentRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 @Service
 public class DocumentServiceImpl implements DocumentService {
 
+    @Value("#{${wordsToExclude}}")
+    private List<String> wordsToExclude;
     Map<String, Integer> wordFrequencyMap;
     private final DocumentRepository documentRepository;
 
@@ -27,13 +31,15 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-
-    public void store(MultipartFile file) throws IOException {
+    public void store(MultipartFile file, String userEmail) throws IOException {
 
         Document doc = new Document();
         doc.setName(file.getOriginalFilename());
         doc.setWordCount(getMockWordCount());
         doc.setFile(file.getBytes());
+
+        //TODO verify user in repo
+        doc.setUserEmail(userEmail);
         documentRepository.save(doc);
     }
 
@@ -48,12 +54,14 @@ public class DocumentServiceImpl implements DocumentService {
                 .forEach(this::collectWords);
 
         // Exclude list of words
-        for (String word : wordsToExclude()
-        ) {
-            wordFrequencyMap.remove(word);
+        if (CollectionUtils.isNotEmpty(wordsToExclude)) {
+            for (String word : wordsToExclude
+            ) {
+                wordFrequencyMap.remove(word.toLowerCase());
+            }
         }
-        Map<String, Integer> sortedMap = sortMap(wordFrequencyMap);
-        return sortedMap;
+        return sortMap();
+
     }
 
     private void collectWords(String line) {
@@ -70,7 +78,7 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
-    private Map<String, Integer> sortMap(Map<String, Integer> mapOfWords) {
+    private Map<String, Integer> sortMap() {
 
         return wordFrequencyMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
@@ -81,18 +89,5 @@ public class DocumentServiceImpl implements DocumentService {
 
     private int getMockWordCount() {
         return (int) (100 + Math.random() * 5000);
-    }
-
-    private List<String> wordsToExclude() {
-        List<String> words = new ArrayList<>();
-        words.add("The");
-        words.add("Me");
-        words.add("You");
-        words.add("I");
-        words.add("Of");
-        words.add("And");
-        words.add("A");
-        words.add("We");
-        return words;
     }
 }
