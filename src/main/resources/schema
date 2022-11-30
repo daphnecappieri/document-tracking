@@ -1,0 +1,17 @@
+-- DROP TABLE IF EXISTS users;
+-- CREATE TABLE users
+-- (
+--     id          serial PRIMARY KEY,
+--     first_name  VARCHAR(255),
+--     last_name   VARCHAR(255),
+--     email       VARCHAR(255),
+--     first_added VARCHAR(255)
+-- );
+-- DROP TABLE IF EXISTS documents;
+-- CREATE TABLE documents
+-- (
+--     id         serial PRIMARY KEY,
+--     name       VARCHAR(255),
+--     document   BYTEA ,
+--     word_count VARCHAR(255)
+-- );
